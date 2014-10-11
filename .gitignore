@@ -19,6 +19,9 @@ hs_err_pid*
 # maven
 target/
 
-# IntelliJ specific
+# IntelliJ
 .idea/
 lbfgs.iml
+
+# REEF
+REEF_LOCAL_RUNTIME/
