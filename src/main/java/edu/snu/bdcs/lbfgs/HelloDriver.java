@@ -40,7 +40,7 @@ public final class HelloDriver {
 
   private static final Logger LOG = Logger.getLogger(HelloDriver.class.getName());
 
-  private final EvaluatorRequestor requestor = null;
+  private final EvaluatorRequestor requestor;
 
   /**
    * Job driver constructor - instantiated via TANG.
