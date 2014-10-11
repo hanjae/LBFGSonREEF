@@ -24,6 +24,8 @@ import com.microsoft.tang.Configuration;
 import com.microsoft.tang.exceptions.BindException;
 import com.microsoft.tang.exceptions.InjectionException;
 
+import edu.snu.bdcs.lbfgs.HelloDriver;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -43,7 +45,12 @@ public final class HelloREEF {
    * @return the configuration of the HelloREEF driver.
    */
   public static Configuration getDriverConfiguration() {
-    final Configuration driverConfiguration = null;
+    final Configuration driverConfiguration = DriverConfiguration.CONF
+    		.set(DriverConfiguration.DRIVER_IDENTIFIER, "Hello")
+    		.set(DriverConfiguration.GLOBAL_LIBRARIES, EnvironmentUtils.getClassLocation(HelloDriver.class))
+    		.set(DriverConfiguration.ON_DRIVER_STARTED, HelloDriver.StartHandler.class)
+    		.set(DriverConfiguration.ON_EVALUATOR_ALLOCATED, HelloDriver.EvaluatorAllocatedHandler.class)
+    		.build();
 
     // TODO : build DriverConfiguration
     return driverConfiguration;
@@ -66,7 +73,8 @@ public final class HelloREEF {
    */
   public static void main(final String[] args) throws BindException, InjectionException {
     // TODO : build LocalRuntimeConfiguration
-    final Configuration runtimeConfiguration = null;
+    final Configuration runtimeConfiguration = LocalRuntimeConfiguration.CONF
+    		.set(LocalRuntimeConfiguration.NUMBER_OF_THREADS, 3).build();
 
     final LauncherStatus status = runHelloReef(runtimeConfiguration, JOB_TIMEOUT);
     LOG.log(Level.INFO, "REEF job completed: {0}", status);

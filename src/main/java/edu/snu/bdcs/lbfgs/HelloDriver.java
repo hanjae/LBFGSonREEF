@@ -50,7 +50,7 @@ public final class HelloDriver {
   public HelloDriver(final EvaluatorRequestor requestor) {
     LOG.log(Level.FINE, "Instantiated 'HelloDriver'");
 
-    // TODO Set EvaluatorRequestor of this class
+    this.requestor = requestor;
   }
 
   /**
@@ -62,7 +62,11 @@ public final class HelloDriver {
       LOG.log(Level.INFO, "Requested Evaluator.");
 
       // TODO Submit request for an evaluator. Build an EvaluatorRequest.
-      HelloDriver.this.requestor.submit(null);
+      HelloDriver.this.requestor.submit(
+    		  EvaluatorRequest.newBuilder()
+    		  .setMemory(128)
+    		  .setNumber(3)
+    		  .build());
     }
   }
 
@@ -76,10 +80,13 @@ public final class HelloDriver {
       LOG.log(Level.INFO, "Submitting HelloREEF task to AllocatedEvaluator: {0}", allocatedEvaluator);
       try {
         // TODO Build ContextConfiguration
-        final Configuration contextConfiguration = null;
+        final Configuration contextConfiguration = ContextConfiguration.CONF
+        		.set(ContextConfiguration.IDENTIFIER, "HelloContext").build();
 
         // TODO Build TaskConfiguration
-        final Configuration taskConfiguration = null;
+        final Configuration taskConfiguration = TaskConfiguration.CONF
+        		.set(TaskConfiguration.IDENTIFIER, "HelloTask")
+        		.set(TaskConfiguration.TASK, HelloTask.class).build();
 
         // Let's submit context and task to the evaluator
         allocatedEvaluator.submitContextAndTask(contextConfiguration, taskConfiguration);
