@@ -12,6 +12,13 @@
 hs_err_pid*
 
 # added by hanjae
+# eclipse
 .project
 .classpath
+
+# maven
 target/
+
+# IntelliJ specific
+.idea/
+lbfgs.iml
