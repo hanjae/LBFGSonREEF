@@ -181,9 +181,6 @@ int lbfgs(
     if (param.epsilon < 0.) {
         return LBFGSERR_INVALID_EPSILON;
     }
-    if (param.past < 0) {
-        return LBFGSERR_INVALID_TESTPERIOD;
-    }
     if (param.delta < 0.) {
         return LBFGSERR_INVALID_DELTA;
     }
