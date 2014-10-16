@@ -160,7 +160,7 @@ int lbfgs(
 
     lbfgsfloatval_t *xp = NULL;
     lbfgsfloatval_t *g = NULL, *gp = NULL,;
-    lbfgsfloatval_t *d = NULL, *w = NULL, *pf = NULL;
+    lbfgsfloatval_t *d = NULL, *w = NULL;
     iteration_data_t *lm = NULL, *it = NULL;
     lbfgsfloatval_t ys, yy;
     lbfgsfloatval_t xnorm, gnorm, beta;
@@ -232,19 +232,10 @@ int lbfgs(
         }
     }
 
-    /* Allocate an array for storing previous values of the objective function. */
-    if (0 < param.past) {
-        pf = (lbfgsfloatval_t*)vecalloc(param.past * sizeof(lbfgsfloatval_t));
-    }
+    
 
     /* Evaluate the function value and its gradient. */
     fx = cd.proc_evaluate(x, g, cd.n, 0);
-
-
-    /* Store the initial value of the objective function. */
-    if (pf != NULL) {
-        pf[0] = fx;
-    }
 
     /*
         Compute the direction;
@@ -308,27 +299,7 @@ int lbfgs(
             break;
         }
 
-        /*
-            Test for stopping criterion.
-            The criterion is given by the following formula:
-                (f(past_x) - f(x)) / f(x) < \delta
-         */
-        if (pf != NULL) {
-            /* We don't test the stopping criterion while k < past. */
-            if (param.past <= k) {
-                /* Compute the relative improvement from the past. */
-                rate = (pf[k % param.past] - fx) / fx;
 
-                /* The stopping criterion. */
-                if (rate < param.delta) {
-                    ret = LBFGS_STOP;
-                    break;
-                }
-            }
-
-            /* Store the current value of the objective function. */
-            pf[k % param.past] = fx;
-        }
 		// TODO hanjae max iteration
         if (param.max_iterations != 0 && param.max_iterations < k+1) {
             /* Maximum number of iterations. */
@@ -407,7 +378,6 @@ lbfgs_exit:
         *ptr_fx = fx;
     }
 
-    vecfree(pf);
 
     /* Free memory blocks used by this function. */
     if (lm != NULL) {
