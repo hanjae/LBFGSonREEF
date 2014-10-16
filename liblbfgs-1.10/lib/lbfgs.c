@@ -72,19 +72,10 @@ licence.
 
 #include <lbfgs.h>
 
-#else
-/* No CPU specific optimization. */
 #include "arithmetic_ansi.h"
-
-#endif
-
-#define min2(a, b)      ((a) <= (b) ? (a) : (b))
-#define max2(a, b)      ((a) >= (b) ? (a) : (b))
-#define max3(a, b, c)   max2(max2((a), (b)), (c));
 
 struct tag_callback_data {
     int n;
-    void *instance;
     lbfgs_evaluate_t proc_evaluate;
     lbfgs_progress_t proc_progress;
 };
@@ -156,7 +147,6 @@ int lbfgs(
     lbfgsfloatval_t *ptr_fx,
     lbfgs_evaluate_t proc_evaluate,
     lbfgs_progress_t proc_progress,
-    void *instance,
     lbfgs_parameter_t *_param
     )
 {
@@ -181,7 +171,6 @@ int lbfgs(
     /* Construct a callback data. */
     callback_data_t cd;
     cd.n = n;
-    cd.instance = instance;
     cd.proc_evaluate = proc_evaluate;
     cd.proc_progress = proc_progress;
 
@@ -206,18 +195,6 @@ int lbfgs(
     }
     if (param.ftol < 0.) {
         return LBFGSERR_INVALID_FTOL;
-    }
-    if (param.linesearch == LBFGS_LINESEARCH_BACKTRACKING_WOLFE ||
-        param.linesearch == LBFGS_LINESEARCH_BACKTRACKING_STRONG_WOLFE) {
-        if (param.wolfe <= param.ftol || 1. <= param.wolfe) {
-            return LBFGSERR_INVALID_WOLFE;
-        }
-    }
-    if (param.gtol < 0.) {
-        return LBFGSERR_INVALID_GTOL;
-    }
-    if (param.xtol < 0.) {
-        return LBFGSERR_INVALID_XTOL;
     }
     if (param.max_linesearch <= 0) {
         return LBFGSERR_INVALID_MAXLINESEARCH;
@@ -261,7 +238,7 @@ int lbfgs(
     }
 
     /* Evaluate the function value and its gradient. */
-    fx = cd.proc_evaluate(cd.instance, x, g, cd.n, 0);
+    fx = cd.proc_evaluate(x, g, cd.n, 0);
 
 
     /* Store the initial value of the objective function. */
@@ -314,7 +291,7 @@ int lbfgs(
 
         /* Report the progress. */
         if (cd.proc_progress) {
-            if ((ret = cd.proc_progress(cd.instance, x, g, fx, xnorm, gnorm, step, cd.n, k, ls))) {
+            if ((ret = cd.proc_progress(x, g, fx, xnorm, gnorm, step, cd.n, k, ls))) {
                 goto lbfgs_exit;
             }
         }
@@ -352,7 +329,7 @@ int lbfgs(
             /* Store the current value of the objective function. */
             pf[k % param.past] = fx;
         }
-
+		// TODO hanjae max iteration
         if (param.max_iterations != 0 && param.max_iterations < k+1) {
             /* Maximum number of iterations. */
             ret = LBFGSERR_MAXIMUMITERATION;
@@ -459,16 +436,14 @@ static int line_search_backtracking(
     lbfgsfloatval_t *s,
     lbfgsfloatval_t *stp,
     const lbfgsfloatval_t* xp,
-    const lbfgsfloatval_t* gp,
-    lbfgsfloatval_t *wp,
     callback_data_t *cd,
     const lbfgs_parameter_t *param
     )
 {
     int count = 0;
-    lbfgsfloatval_t width, dg;
+    lbfgsfloatval_t width;
     lbfgsfloatval_t finit, dginit = 0., dgtest;
-    const lbfgsfloatval_t dec = 0.5, inc = 2.1;
+    const lbfgsfloatval_t dec = 0.5;
 
     /* Check the input parameters for errors. */
     if (*stp <= 0.) {
@@ -492,7 +467,7 @@ static int line_search_backtracking(
         vecadd(x, s, *stp, n);
 
         /* Evaluate the function and gradient values. */
-        *f = cd->proc_evaluate(cd->instance, x, g, cd->n, *stp);
+        *f = cd->proc_evaluate(x, g, cd->n, *stp);
 
         ++count;
 
@@ -500,29 +475,8 @@ static int line_search_backtracking(
             width = dec;
         } else {
             /* The sufficient decrease condition (Armijo condition). */
-            if (param->linesearch == LBFGS_LINESEARCH_BACKTRACKING_ARMIJO) {
-                /* Exit with the Armijo condition. */
-                return count;
-	        }
-
-	        /* Check the Wolfe condition. */
-	        vecdot(&dg, g, s, n);
-	        if (dg < param->wolfe * dginit) {
-    		    width = inc;
-	        } else {
-		        if(param->linesearch == LBFGS_LINESEARCH_BACKTRACKING_WOLFE) {
-		            /* Exit with the regular Wolfe condition. */
-		            return count;
-		        }
-
-		        /* Check the strong Wolfe condition. */
-		        if(dg > -param->wolfe * dginit) {
-		            width = dec;
-		        } else {
-		            /* Exit with the strong Wolfe condition. */
-		            return count;
-		        }
-            }
+            /* Exit with the Armijo condition. */
+            return count;
         }
 
         if (*stp < param->min_step) {
