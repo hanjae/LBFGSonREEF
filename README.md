@@ -16,6 +16,14 @@ Build
 mvn clean install 
 ```
 
+Run
+===========
+```
+$ ./run.sh
+```
+Currently 6 threads are working.
+One for Controller task, Five for Compute tasks.
+
 Working
 ===========
 * Distributed group communication
