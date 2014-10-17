@@ -52,7 +52,7 @@ public class lmbfgs {
 
     private double[][] x;
     private double[] y;
-    
+
     public class iteration_data {
         public double[] alpha;
         public double[] s;    /* [n] */

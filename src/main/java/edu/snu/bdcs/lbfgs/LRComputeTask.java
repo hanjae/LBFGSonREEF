@@ -31,6 +31,9 @@ import java.util.logging.Logger;
 public class LRComputeTask implements Task {
     private final Logger logger = Logger.getLogger(LRComputeTask.class.getName());
 
+    private int num_features;
+    private int num_data;
+
     Scatter.Receiver<LRArray> scatterReceiver;
     Reduce.Sender<LRArray> reduceSender;
 
@@ -49,10 +52,33 @@ public class LRComputeTask implements Task {
         logger.log(Level.FINE, "Waiting for scatterReceive");
         List<LRArray> partialX = scatterReceiver.receive();
         logger.log(Level.FINE, "Received: " + partialX);
-        System.out.println(partialX.get(0).get(0) + "|" + partialX.get(0).get(1));
-        reduceSender.send(partialX.get(0));
-        //System.out.println(partialX.get(0) + "|" + partialX.get(1) + "|" + partialX.get(2) + "|" + partialX.get(3) + "|" + partialX.get(4) + "|");
-        return null;
+
+        num_data = partialX.size();
+        num_features = partialX.get(0).size() - 1;
+
+        double[] data;
+
+        data = new double[num_data*(num_features + 1)];
+        int j = 0;
+        for (int i = 0; i < num_data; i++) {
+            for (int k = 1; k < num_features + 1; k++) {
+                data[j++] = partialX.get(i).get(k); // x[0] ~ x[n]
+            }
+            data[j++] = partialX.get(i).get(0); // y
+        }
+        lmbfgs engine = new lmbfgs();
+
+        double ret = engine.process(j, data);
+
+        LRArray resultArr = new LRArray(num_features + 1);
+        for (int i = 0; i < num_features; i++) {
+            // first (num_features) data is trained coefficients
+            resultArr.set(i,data[i]);
+        }
+        reduceSender.send(resultArr);
+        String resultStr = "ComputeTask Trained : ";
+        resultStr += resultArr.get(0) + " " + resultArr.get(1) + " " + resultArr.get(2);
+        return resultStr.getBytes();
     }
 
 

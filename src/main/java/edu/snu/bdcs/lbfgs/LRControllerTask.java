@@ -465,7 +465,7 @@ public class LRControllerTask implements Task {
         // Convert matrix data into a list of rows
         X = new ArrayList<>(data.length);
         for (int i = 0; i < data.length; i++) {
-            LRArray rowi = new LRArray(5);
+            LRArray rowi = new LRArray(4);
             for (int j = 0; j < data[i].length; j++) {
                 rowi.set(j, data[i][j]);
             }
@@ -482,10 +482,9 @@ public class LRControllerTask implements Task {
         List<LRArray> result = new ArrayList<>();
 
         LRArray resultArray = reduceReceiver.reduce();
-/*        result.add(Ax);
+        String resultStr = "Controller merged data : ";
+        resultStr += resultArray.get(0) + " " + resultArray.get(1) + " " + resultArray.get(2);
 
-        System.out.println(Ax.get(0) + "|" + Ax.get(1) + "|" + Ax.get(2) + "|" + Ax.get(3) + "|" + Ax.get(4) + "|");
-*/
-        return null;
+        return resultStr.getBytes();
     }
 }

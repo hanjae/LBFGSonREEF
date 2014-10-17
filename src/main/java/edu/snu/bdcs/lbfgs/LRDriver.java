@@ -148,7 +148,7 @@ public class LRDriver {
             if (taskSubmitter.controllerCompleted(completed.getId())) {
                 // Get results from controller
                 System.out.println("****************** RESULT ******************");
-//                System.out.println(new String(completed.get()));
+                System.out.println(new String(completed.get()));
                 System.out.println("********************************************");
             }
             final ActiveContext context = completed.getActiveContext();
