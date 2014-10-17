@@ -36,7 +36,7 @@ import java.util.logging.Logger;
  */
 public final class LogisticRegression {
 
-    private static final Logger LOG = Logger.getLogger(HelloREEF.class.getName());
+    private static final Logger LOG = Logger.getLogger(LogisticRegression.class.getName());
 
     /**
      * Number of milliseconds to wait for the job to complete.
