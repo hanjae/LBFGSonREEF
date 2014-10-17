@@ -69,6 +69,11 @@
             <artifactId>reef-poison</artifactId>
             <version>${reef.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.microsoft.reef</groupId>
+            <artifactId>shimoga</artifactId>
+            <version>0.1-SNAPSHOT</version>
+        </dependency>
         <!-- End of REEF -->
         
         <!-- HADOOP -->
@@ -128,6 +133,17 @@
                             </excludes>
                         </filter>
                     </filters>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                    <showDeprecation>true</showDeprecation>
+                    <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
             </plugin>
         </plugins>
