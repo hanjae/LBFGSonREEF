@@ -52,10 +52,7 @@ public class lmbfgs {
 
     private double[][] x;
     private double[] y;
-    // Theta
-    private double[] theta;
-
-
+    
     public class iteration_data {
         public double[] alpha;
         public double[] s;    /* [n] */
@@ -129,31 +126,24 @@ public class lmbfgs {
          *  Minimize j(theta) for logistic regression
          *
          */
-
-        double fx = 0.0;
-        double sum = 0.0;
+        // TODO find out why member variable becomes zero here
         num_features = 3;
-        for (int i = 0; i < n-10; i = i + (num_features + 1)) {
-            System.out.println("x" + x[i] + "|" + x[i+1] + "|" + x[i+2] + "y" + x[i+3]);
-            System.out.println("i" + i + " " + this.num_features);
-            double ttx = 0.0; //theta transpose x
-            for (int j = 0; j < num_features; j++) {
-                ttx += theta[j] * x[i+j];
-            }
-            // x[i] = x0
-            // x[i+1] = x1
-            // x[i+num_features] = y
+        num_data = n / (num_features + 1);
+        int i = 0;
+        double fx = 0.0f;
 
-            double epow = (1 + Math.pow(Math.E, -1 * ttx));
-            double htheta = 1.0;
-            if (epow != 0) {
-                htheta = 1 / epow;
+        for (i = 0; i < n; i += (num_features + 1)) {
+            for (int j = 0; j < num_features; j++) {
+                //x[i+j] = x(j)
             }
-            sum += x[i + num_features] * Math.log(htheta) +
-                    (1 - x[i + num_features]) * Math.log(1 - htheta);
+            //x[i + num_features] == y
+            double t1 = 1.0 - x[i];
+            double t2 = 10.0 * (x[i+1] - x[i] * x[i]);
+            g[i+1] = 20.0 * t2;
+            g[i] = -2.0 * (x[i] * g[i+1] + t1);
+            fx += t1 * t1 + t2 * t2;
         }
-        fx = (-1 / num_data) * sum;
-        System.out.println("Fx" + fx);
+
         return fx;
     }
 
@@ -470,11 +460,8 @@ public class lmbfgs {
             data[j++] = y[i];
         }
         lmbfgs engine = new lmbfgs();
+
         double ret = engine.process(j, data);
-        theta = new double[num_features];
-        for (int i = 0; i < num_features; i++) {
-            theta[i] = 1;
-        }
         System.out.println("ret : " + ret);
     }
     public static void main(String[] args) throws FileNotFoundException {
