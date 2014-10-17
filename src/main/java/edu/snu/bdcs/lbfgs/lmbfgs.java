@@ -3,6 +3,7 @@
  *
  * Copyright (c) 1990, Jorge Nocedal
  * Copyright (c) 2007-2010 Naoaki Okazaki
+ * Copyright (c) 2014, Jaehyun Han
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,6 +25,14 @@
  * THE SOFTWARE.
  */
 
+/*
+This library is a Java port of the C implementation of Limited-memory
+Broyden-Fletcher-Goldfarb-Shanno (L-BFGS) method written by Naoaki Okazaki.
+The original FORTRAN source code is available at:
+http://www.ece.northwestern.edu/~nocedal/lbfgs.html
+The corresponding C source code is available at:
+http://www.chokkan.org/software/liblbfgs/
+*/
 package edu.snu.bdcs.lbfgs;
 
 import java.io.File;
