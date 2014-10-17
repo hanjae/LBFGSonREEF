@@ -52,9 +52,6 @@ public class lmbfgs {
 
     private double[][] x;
     private double[] y;
-    // Theta
-    private double[] weights;
-
 
     public class iteration_data {
         public double[] alpha;
@@ -125,16 +122,28 @@ public class lmbfgs {
 
     // check this works well
     private double sigmoid (final double[] x, double[] g, final int n) {
-        int i;
-        double fx = 0.0;
+        /**
+         *  Minimize j(theta) for logistic regression
+         *
+         */
+        // TODO find out why member variable becomes zero here
+        num_features = 3;
+        num_data = n / (num_features + 1);
+        int i = 0;
+        double fx = 0.0f;
 
-        for (i = 0; i < n; i += 2) {
+        for (i = 0; i < n; i += (num_features + 1)) {
+            for (int j = 0; j < num_features; j++) {
+                //x[i+j] = x(j)
+            }
+            //x[i + num_features] == y
             double t1 = 1.0 - x[i];
             double t2 = 10.0 * (x[i+1] - x[i] * x[i]);
             g[i+1] = 20.0 * t2;
             g[i] = -2.0 * (x[i] * g[i+1] + t1);
             fx += t1 * t1 + t2 * t2;
         }
+
         return fx;
     }
 
@@ -439,8 +448,23 @@ public class lmbfgs {
         }
         num_data = i;
     }
+
+    public void runWithLoadedData() {
+        double[] data;
+        data = new double[num_data*(num_features + 1)];
+        int j = 0;
+        for (int i = 0; i < num_data; i++) {
+            for (int k = 0; k < num_features; k++) {
+                data[j++] = x[i][k];
+            }
+            data[j++] = y[i];
+        }
+        lmbfgs engine = new lmbfgs();
+
+        double ret = engine.process(j, data);
+        System.out.println("ret : " + ret);
+    }
     public static void main(String[] args) throws FileNotFoundException {
-        System.out.println("ABCD");
         lmbfgs engine = new lmbfgs();
         engine.loadDataset();
         /*
@@ -458,7 +482,7 @@ public class lmbfgs {
         y[0] = 2;
         System.out.println(x[4]);
         */
-        int n = 100;
+        /*int n = 100;
         double ret;
         double[] x;
         x = new double[n];
@@ -466,8 +490,10 @@ public class lmbfgs {
             x[i] = -1.2;
             x[i+1] = 1.0;
         }
+
         ret = engine.process(n, x);
-        System.out.println("ret : " + ret);
+        System.out.println("ret : " + ret);*/
+        engine.runWithLoadedData();
 
     }
 }
