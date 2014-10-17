@@ -78,7 +78,7 @@ public final class LogisticRegression {
     public static void main(final String[] args) throws BindException, InjectionException {
         // TODO : build LocalRuntimeConfiguration
         final Configuration runtimeConfiguration = LocalRuntimeConfiguration.CONF
-                .set(LocalRuntimeConfiguration.NUMBER_OF_THREADS, 5)
+                .set(LocalRuntimeConfiguration.NUMBER_OF_THREADS, 6)
                 .build();
 
         final LauncherStatus status = runLogisticRegression(runtimeConfiguration, JOB_TIMEOUT);

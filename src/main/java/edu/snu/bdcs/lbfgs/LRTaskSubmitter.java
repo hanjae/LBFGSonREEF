@@ -121,17 +121,33 @@ public class LRTaskSubmitter implements EventHandler<Iterable<ActiveContext>> {
         logger.log(Level.INFO, "All context are running");
         logger.log(Level.INFO, "Setting Up Structures for creating Group Comm Operator Configurations");
 
+        int runnEvalCnt = -1;
         List<ActiveContext> contextList = new ArrayList<>(numberOfComputeTasks);
         Map<ComparableIdentifier, Integer> id2port = new HashMap<>();
         for (ActiveContext context : contexts) {
-            controllerContext = context;
-            // TODO: Review after #143
-            final String hostAddr = context.getEvaluatorDescriptor().getNodeDescriptor()
-                    .getInetSocketAddress().getHostName();
+            if (runnEvalCnt != -1) {
+                // Computer Context
+                contextList.add(context);
+                final String hostAddr = context.getEvaluatorDescriptor().getNodeDescriptor()
+                        .getInetSocketAddress().getHostName();
 //				String hostAddr = Utils.getLocalAddress();
-            nameService.register(controllerId, new InetSocketAddress(
-                    hostAddr, controllerPort));
-            id2port.put(controllerId, controllerPort);
+                final int port = nsPorts.get(runnEvalCnt);
+                final ComparableIdentifier compTaskId = computeTaskIds.get(runnEvalCnt);
+                logger.log(Level.INFO, "Registering " + compTaskId + " with " + hostAddr + ":" + port);
+                nameService.register(compTaskId, new InetSocketAddress(hostAddr,
+                        port));
+                id2port.put(compTaskId, port);
+            } else {
+                // Controller Context
+                controllerContext = context;
+                final String hostAddr = context.getEvaluatorDescriptor().getNodeDescriptor()
+                        .getInetSocketAddress().getHostName();
+//				String hostAddr = Utils.getLocalAddress();
+                nameService.register(controllerId, new InetSocketAddress(
+                        hostAddr, controllerPort));
+                id2port.put(controllerId, controllerPort);
+            }
+            ++runnEvalCnt;
         }
 
         logger.log(Level.INFO, "Creating Operator Configs");
@@ -141,16 +157,18 @@ public class LRTaskSubmitter implements EventHandler<Iterable<ActiveContext>> {
 
         operators.addScatter().setSender(controllerId)
                 .setReceivers(computeTaskIds);
-        operators.addBroadCast().setSender(controllerId)
-                .setReceivers(computeTaskIds);
+        /*operators.addBroadCast().setSender(controllerId)
+                .setReceivers(computeTaskIds);*/
         operators.addReduce().setReceiver(controllerId)
                 .setSenders(computeTaskIds).setRedFuncClass(LRArrayConcat.class);
-
+        logger.log(Level.INFO, "Creating Operator Configs1111111111111111111111");
         // Launch ComputeTasks first
         for (int i = 0; i < contextList.size(); i++) {
+            logger.log(Level.INFO, "Creating Operator Configs22222222222222222222222");
             final ComparableIdentifier compTaskId = computeTaskIds.get(i);
             contextList.get(i).submitTask(getComputeTaskConfig(compTaskId));
         }
+        logger.log(Level.INFO, "Creating Operator Configs43333333333333333333333");
     }
 
     /**
