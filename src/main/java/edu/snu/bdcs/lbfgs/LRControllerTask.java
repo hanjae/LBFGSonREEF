@@ -16,7 +16,6 @@
 package edu.snu.bdcs.lbfgs;
 
 import com.microsoft.reef.task.Task;
-import com.microsoft.reef.io.network.group.operators.Broadcast;
 import com.microsoft.reef.io.network.group.operators.Reduce;
 import com.microsoft.reef.io.network.group.operators.Scatter;
 import sun.reflect.LangReflectAccess;
@@ -40,7 +39,6 @@ public class LRControllerTask implements Task {
      * are complementary to the ones used in the ComputeTask
      */
     Scatter.Sender<LRArray> scatterSender;
-    Broadcast.Sender<LRArray> broadcastSender;
     Reduce.Receiver<LRArray> reduceReceiver;
 
 
@@ -52,18 +50,14 @@ public class LRControllerTask implements Task {
      *
      * @param scatterSender
      *            The sender for the scatter operation
-     * @param broadcastSender
-     *            The sender for the broadcast operation
      * @param reduceReceiver
      *            The receiver for the reduce operation
      */
     @Inject
     public LRControllerTask(Scatter.Sender<LRArray> scatterSender,
-                          Broadcast.Sender<LRArray> broadcastSender,
                           Reduce.Receiver<LRArray> reduceReceiver) {
         super();
         this.scatterSender = scatterSender;
-        this.broadcastSender = broadcastSender;
         this.reduceReceiver = reduceReceiver;
 
         // For now initialize the matrix
@@ -112,7 +106,7 @@ public class LRControllerTask implements Task {
 
         String resStr = resultString(A, X, result);
         return resStr.getBytes();*/
-        return "Apple".getBytes();
+        return null;
     }
 
     /**
