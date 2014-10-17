@@ -161,14 +161,11 @@ public class LRTaskSubmitter implements EventHandler<Iterable<ActiveContext>> {
                 .setReceivers(computeTaskIds);*/
         operators.addReduce().setReceiver(controllerId)
                 .setSenders(computeTaskIds).setRedFuncClass(LRArrayConcat.class);
-        logger.log(Level.INFO, "Creating Operator Configs1111111111111111111111");
         // Launch ComputeTasks first
         for (int i = 0; i < contextList.size(); i++) {
-            logger.log(Level.INFO, "Creating Operator Configs22222222222222222222222");
             final ComparableIdentifier compTaskId = computeTaskIds.get(i);
             contextList.get(i).submitTask(getComputeTaskConfig(compTaskId));
         }
-        logger.log(Level.INFO, "Creating Operator Configs43333333333333333333333");
     }
 
     /**
