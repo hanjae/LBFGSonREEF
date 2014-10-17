@@ -15,8 +15,36 @@
  */
 package edu.snu.bdcs.lbfgs;
 
+import com.microsoft.reef.task.Task;
+import com.microsoft.reef.io.network.group.operators.Broadcast;
+import com.microsoft.reef.io.network.group.operators.Reduce;
+import com.microsoft.reef.io.network.group.operators.Scatter;
+
+import javax.inject.Inject;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+
 /**
  * Created by Jaehyun on 2014-10-17.
  */
-public class LRComputeTask {
+public class LRComputeTask implements Task {
+    private final Logger logger = Logger.getLogger(LRComputeTask.class.getName());
+
+    Scatter.Receiver<LRArray> scatterReceiver;
+    Broadcast.Receiver<LRArray> broadcastReceiver;
+    Reduce.Sender<LRArray> reduceSender;
+
+    @Override
+    public byte[] call(byte[] memento) throws Exception {
+        logger.log(Level.FINE, "Waiting for scatterReceive");
+        List<LRArray> partialX = scatterReceiver.receive();
+        logger.log(Level.FINE, "Received: " + partialX);
+        reduceSender.send(partialX.get(0));
+        System.out.println(partialX.get(0) + "|" + partialX.get(1) + "|" + partialX.get(2) + "|" + partialX.get(3) + "|" + partialX.get(4) + "|");
+        return null;
+    }
+
+
 }

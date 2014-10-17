@@ -19,6 +19,7 @@ import com.microsoft.reef.task.Task;
 import com.microsoft.reef.io.network.group.operators.Broadcast;
 import com.microsoft.reef.io.network.group.operators.Reduce;
 import com.microsoft.reef.io.network.group.operators.Scatter;
+import sun.reflect.LangReflectAccess;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -38,14 +39,13 @@ public class LRControllerTask implements Task {
      * will be injected into the constructor by TANG. The operators used here
      * are complementary to the ones used in the ComputeTask
      */
-    Scatter.Sender<Vector> scatterSender;
-    Broadcast.Sender<Vector> broadcastSender;
-    Reduce.Receiver<Vector> reduceReceiver;
+    Scatter.Sender<LRArray> scatterSender;
+    Broadcast.Sender<LRArray> broadcastSender;
+    Reduce.Receiver<LRArray> reduceReceiver;
 
-    // The matrices
-    List<Vector> X, A;
 
-    // We compute AX'
+    // The values
+    List<LRArray> X;
 
     /**
      * This class is instantiated by TANG
@@ -58,9 +58,9 @@ public class LRControllerTask implements Task {
      *            The receiver for the reduce operation
      */
     @Inject
-    public LRControllerTask(Scatter.Sender<Vector> scatterSender,
-                          Broadcast.Sender<Vector> broadcastSender,
-                          Reduce.Receiver<Vector> reduceReceiver) {
+    public LRControllerTask(Scatter.Sender<LRArray> scatterSender,
+                          Broadcast.Sender<LRArray> broadcastSender,
+                          Reduce.Receiver<LRArray> reduceReceiver) {
         super();
         this.scatterSender = scatterSender;
         this.broadcastSender = broadcastSender;
@@ -76,18 +76,14 @@ public class LRControllerTask implements Task {
                 { 20, 21, 22, 23, 24 } };
 
         // Convert matrix into a list of row vectors
-        A = new ArrayList<>(matrix.length);
+        X = new ArrayList<>(matrix.length);
         for (int i = 0; i < matrix.length; i++) {
-            Vector rowi = new DenseVector(5);
+            LRArray rowi = new LRArray(5);
             for (int j = 0; j < matrix[i].length; j++) {
                 rowi.set(j, matrix[i][j]);
             }
-            A.add(rowi);
+            X.add(rowi);
         }
-
-        // Setting X = A for now. Hence computing AA'
-        // TODO: Read X from disk/hdfs
-        X = A;
     }
 
     /**
@@ -95,29 +91,28 @@ public class LRControllerTask implements Task {
      */
     @Override
     public byte[] call(byte[] memento) throws Exception {
-        // Scatter the matrix A
+        // Scatter the matrix X
         logger.log(Level.FINE, "Scattering A");
-        scatterSender.send(A);
+        scatterSender.send(X);
         logger.log(Level.FINE, "Finished Scattering A");
-        List<Vector> result = new ArrayList<>();
-        Vector sizeVec = new DenseVector(1);
+        List<LRArray> result = new ArrayList<>();
+/*
+        LRArray sizeVec = new LRArray(1);
         sizeVec.set(0, (double) X.size());
-        // Broadcast the number of columns to be
-        // broadcasted
-        broadcastSender.send(sizeVec);
-        // Just use Iterable with a Matrix class
-        for (Vector x : X) {
-            // Broadcast each column
-            broadcastSender.send(x);
-            // Receive a concatenated vector of the
-            // partial sums computed by each computeTask
-            Vector Ax = reduceReceiver.reduce();
-            // Accumulate the result
-            result.add(Ax);
+        // TODO edit number
+*/
+        LRArray Ax = reduceReceiver.reduce();
+        result.add(Ax);
+
+        System.out.println(Ax.get(0) + "|" + Ax.get(1) + "|" + Ax.get(2) + "|" + Ax.get(3) + "|" + Ax.get(4) + "|");
+        /*for (int i = 0; i < 5; i++) {
+
         }
 
+
         String resStr = resultString(A, X, result);
-        return resStr.getBytes();
+        return resStr.getBytes();*/
+        return "Apple".getBytes();
     }
 
     /**
@@ -129,6 +124,7 @@ public class LRControllerTask implements Task {
      *            = AX'
      * @return A string indicating the matrices being multiplied and the result
      */
+    /*
     private String resultString(List<Vector> A, List<Vector> X,
                                 List<Vector> result) {
         StringBuilder sb = new StringBuilder();
@@ -176,5 +172,6 @@ public class LRControllerTask implements Task {
         }
         return sb.toString();
     }
+    */
 
 }

@@ -119,74 +119,38 @@ public class LRTaskSubmitter implements EventHandler<Iterable<ActiveContext>> {
     @Override
     public void onNext(Iterable<ActiveContext> contexts) {
         logger.log(Level.INFO, "All context are running");
-        logger.log(Level.INFO,
-                "Setting Up Structures for creating Group Comm Operator Configurations");
-        // TODO: After we fix issue #143, we need not worry about
-        // setting up id to port mappings. We will let the service
-        // choose a random port whose mapping will be made available
-        // through the Name Service
-        int runnEvalCnt = -1;
+        logger.log(Level.INFO, "Setting Up Structures for creating Group Comm Operator Configurations");
+
         List<ActiveContext> contextList = new ArrayList<>(numberOfComputeTasks);
         Map<ComparableIdentifier, Integer> id2port = new HashMap<>();
         for (ActiveContext context : contexts) {
-            if (runnEvalCnt != -1) {
-                contextList.add(context);
-                // TODO: Review after #143
-                final String hostAddr = context.getEvaluatorDescriptor().getNodeDescriptor()
-                        .getInetSocketAddress().getHostName();
+            controllerContext = context;
+            // TODO: Review after #143
+            final String hostAddr = context.getEvaluatorDescriptor().getNodeDescriptor()
+                    .getInetSocketAddress().getHostName();
 //				String hostAddr = Utils.getLocalAddress();
-                final int port = nsPorts.get(runnEvalCnt);
-                final ComparableIdentifier compTaskId = computeTaskIds.get(runnEvalCnt);
-                logger.log(Level.INFO, "Registering " + compTaskId + " with " + hostAddr + ":" + port);
-                nameService.register(compTaskId, new InetSocketAddress(hostAddr,
-                        port));
-                id2port.put(compTaskId, port);
-            } else {
-                controllerContext = context;
-                // TODO: Review after #143
-                final String hostAddr = context.getEvaluatorDescriptor().getNodeDescriptor()
-                        .getInetSocketAddress().getHostName();
-//				String hostAddr = Utils.getLocalAddress();
-                nameService.register(controllerId, new InetSocketAddress(
-                        hostAddr, controllerPort));
-                id2port.put(controllerId, controllerPort);
-            }
-            ++runnEvalCnt;
+            nameService.register(controllerId, new InetSocketAddress(
+                    hostAddr, controllerPort));
+            id2port.put(controllerId, controllerPort);
         }
 
         logger.log(Level.INFO, "Creating Operator Configs");
 
-        // All the group comm operators that we will use
-        // will have VectorCodec and use VectorConcat as
-        // the reduce function. The id2port should not be
-        // there but we need to hold on for 143's fix
-        operators = new GroupOperators(VectorCodec.class, VectorConcat.class,
+        operators = new GroupOperators(LRArrayCodec.class, LRArrayConcat.class,
                 nameServiceAddr, nameServicePort, id2port);
 
-        // Fluent syntax for adding the group communication
-        // operators that are needed for the job
         operators.addScatter().setSender(controllerId)
                 .setReceivers(computeTaskIds);
-
         operators.addBroadCast().setSender(controllerId)
                 .setReceivers(computeTaskIds);
-
-        // Each operator can override the default setting
-        // Here the reduce function though same put it in
-        // to illustrate
         operators.addReduce().setReceiver(controllerId)
-                .setSenders(computeTaskIds).setRedFuncClass(VectorConcat.class);
+                .setSenders(computeTaskIds).setRedFuncClass(LRArrayConcat.class);
 
         // Launch ComputeTasks first
         for (int i = 0; i < contextList.size(); i++) {
             final ComparableIdentifier compTaskId = computeTaskIds.get(i);
             contextList.get(i).submitTask(getComputeTaskConfig(compTaskId));
         }
-
-        // All compute tasks have been launched
-        // Wait for them to start running and
-        // submitTask controller task later using controllerContext
-
     }
 
     /**
@@ -206,7 +170,7 @@ public class LRTaskSubmitter implements EventHandler<Iterable<ActiveContext>> {
             b.addConfiguration(operators.getConfig(compTaskId));
             b.addConfiguration(TaskConfiguration.CONF
                     .set(TaskConfiguration.IDENTIFIER, compTaskId.toString())
-                    .set(TaskConfiguration.TASK, ComputeTask.class)
+                    .set(TaskConfiguration.TASK, LRComputeTask.class)
                     .set(TaskConfiguration.ON_TASK_STARTED, BindNSToTask.class)
                     .build());
             return b.build();
@@ -229,7 +193,7 @@ public class LRTaskSubmitter implements EventHandler<Iterable<ActiveContext>> {
             final JavaConfigurationBuilder b = Tang.Factory.getTang().newConfigurationBuilder();
             b.addConfiguration(operators.getConfig(controllerId));
             b.addConfiguration(TaskConfiguration.CONF
-                    .set(TaskConfiguration.IDENTIFIER, "LRControllerTask")
+                    .set(TaskConfiguration.IDENTIFIER, controllerId.toString())
                     .set(TaskConfiguration.TASK, LRControllerTask.class)
                     .set(TaskConfiguration.ON_TASK_STARTED, BindNSToTask.class)
                     .build());
