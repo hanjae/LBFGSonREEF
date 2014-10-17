@@ -65,7 +65,7 @@ public final class HelloDriver {
       HelloDriver.this.requestor.submit(
     		  EvaluatorRequest.newBuilder()
     		  .setMemory(128)
-    		  .setNumber(3)
+    		  .setNumber(5)
     		  .build());
     }
   }

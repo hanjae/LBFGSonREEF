@@ -44,21 +44,23 @@ public final class LogisticRegression {
     private static final int JOB_TIMEOUT = 10000; // 10 sec.
 
     /**
-     * @return the configuration of the HelloREEF driver.
+     * @return the configuration of the LogisticRegression driver.
      */
     public static Configuration getDriverConfiguration() {
         final Configuration driverConfiguration = DriverConfiguration.CONF
-                .set(DriverConfiguration.DRIVER_IDENTIFIER, "Hello")
-                .set(DriverConfiguration.GLOBAL_LIBRARIES, EnvironmentUtils.getClassLocation(HelloDriver.class))
-                .set(DriverConfiguration.ON_DRIVER_STARTED, HelloDriver.StartHandler.class)
-                .set(DriverConfiguration.ON_EVALUATOR_ALLOCATED, HelloDriver.EvaluatorAllocatedHandler.class)
+                .set(DriverConfiguration.DRIVER_IDENTIFIER, "LogisticRegressionDriver")
+                .set(DriverConfiguration.GLOBAL_LIBRARIES, EnvironmentUtils.getClassLocation(LRDriver.class))
+                .set(DriverConfiguration.ON_DRIVER_STARTED, LRDriver.StartHandler.class)
+                .set(DriverConfiguration.ON_EVALUATOR_ALLOCATED, LRDriver.EvaluatorAllocatedHandler.class)
+                .set(DriverConfiguration.ON_TASK_RUNNING, LRDriver.TaskRunningHandler.class)
+                .set(DriverConfiguration.ON_TASK_COMPLETED, LRDriver.TaskCompletedHandler.class)
+                .set(DriverConfiguration.ON_CONTEXT_ACTIVE, LRDriver.ContextActiveHandler.class)
                 .build();
 
-        // TODO : build DriverConfiguration
         return driverConfiguration;
     }
 
-    public static LauncherStatus runHelloReef(final Configuration runtimeConf, final int timeOut)
+    public static LauncherStatus runLogisticRegression(final Configuration runtimeConf, final int timeOut)
             throws BindException, InjectionException {
         final Configuration driverConf = getDriverConfiguration();
 
@@ -67,7 +69,7 @@ public final class LogisticRegression {
     }
 
     /**
-     * Start Hello REEF job. Runs method runHelloReef().
+     * Start Logistic Regression job. Runs method runLogisticRegression().
      *
      * @param args command line parameters.
      * @throws com.microsoft.tang.exceptions.BindException      configuration error.
@@ -76,9 +78,10 @@ public final class LogisticRegression {
     public static void main(final String[] args) throws BindException, InjectionException {
         // TODO : build LocalRuntimeConfiguration
         final Configuration runtimeConfiguration = LocalRuntimeConfiguration.CONF
-                .set(LocalRuntimeConfiguration.NUMBER_OF_THREADS, 3).build();
+                .set(LocalRuntimeConfiguration.NUMBER_OF_THREADS, 5)
+                .build();
 
-        final LauncherStatus status = runHelloReef(runtimeConfiguration, JOB_TIMEOUT);
+        final LauncherStatus status = runLogisticRegression(runtimeConfiguration, JOB_TIMEOUT);
         LOG.log(Level.INFO, "REEF job completed: {0}", status);
     }
 }

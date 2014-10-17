@@ -74,7 +74,7 @@ public final class HelloREEF {
   public static void main(final String[] args) throws BindException, InjectionException {
     // TODO : build LocalRuntimeConfiguration
     final Configuration runtimeConfiguration = LocalRuntimeConfiguration.CONF
-    		.set(LocalRuntimeConfiguration.NUMBER_OF_THREADS, 3).build();
+    		.set(LocalRuntimeConfiguration.NUMBER_OF_THREADS, 6).build();
 
     final LauncherStatus status = runHelloReef(runtimeConfiguration, JOB_TIMEOUT);
     LOG.log(Level.INFO, "REEF job completed: {0}", status);
