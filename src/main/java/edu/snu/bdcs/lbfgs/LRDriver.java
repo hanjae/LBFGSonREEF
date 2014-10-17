@@ -23,7 +23,10 @@ import com.microsoft.reef.driver.evaluator.EvaluatorRequestor;
 import com.microsoft.reef.driver.task.CompletedTask;
 import com.microsoft.reef.driver.task.RunningTask;
 import com.microsoft.reef.driver.task.TaskConfiguration;
+import com.microsoft.reef.io.data.loading.api.DataLoadingService;
+import com.microsoft.reef.poison.PoisonedConfiguration;
 import com.microsoft.tang.Configuration;
+import com.microsoft.tang.Tang;
 import com.microsoft.tang.annotations.Name;
 import com.microsoft.tang.annotations.NamedParameter;
 import com.microsoft.tang.annotations.Parameter;
@@ -60,6 +63,12 @@ public class LRDriver {
 
     private final EvaluatorRequestor requestor;
 
+    private final DataLoadingService dataLoadingService;
+    private final AtomicInteger completedDataTasks = new AtomicInteger();
+    private final AtomicInteger ctrlCtxIds = new AtomicInteger();
+    private final AtomicInteger lineCnt = new AtomicInteger();
+
+
     public static class Parameters {
         @NamedParameter(default_value = "5", doc = "The number of compute tasks to spawn")
         public static class ComputeTasks implements Name<Integer> {
@@ -76,6 +85,7 @@ public class LRDriver {
      */
     @Inject
     public LRDriver(
+            final DataLoadingService dataLoadingService,
             final EvaluatorRequestor requestor,
             final @Parameter(Parameters.ComputeTasks.class) int computeTasks,
             final @Parameter(Parameters.NameServicePort.class) int nameServicePort) {
@@ -84,6 +94,8 @@ public class LRDriver {
         this.computeTasks = computeTasks;
         this.taskSubmitter = new LRTaskSubmitter(this.computeTasks, nameServicePort);
         this.contextAccumulator = new BlockingEventHandler<>(this.computeTasks+ this.controllerTasks, this.taskSubmitter);
+        this.dataLoadingService = dataLoadingService;
+        this.completedDataTasks.set(dataLoadingService.getNumberOfPartitions());
     }
 
     /**
@@ -136,7 +148,25 @@ public class LRDriver {
         @Override
         public void onNext(final ActiveContext activeContext) {
             LOG.log(Level.INFO, "Received a RunningEvaluator with ID: {0}", activeContext.getId());
-            contextAccumulator.onNext(activeContext);
+            if (dataLoadingService.isDataLoadedContext(activeContext)) {
+                final String contextId = activeContext.getId();
+                final String lcContextId = "LineCountCtxt-" + ctrlCtxIds.getAndIncrement();
+                LOG.log(Level.FINEST, "Submit LineCount context {0} to: {1}",
+                        new Object[] { lcContextId, contextId });
+
+                final Configuration poisonedConfiguration = PoisonedConfiguration.CONTEXT_CONF
+                        .set(PoisonedConfiguration.CRASH_PROBABILITY, "0.4")
+                        .set(PoisonedConfiguration.CRASH_TIMEOUT, "1")
+                        .build();
+
+                activeContext.submitContext(Tang.Factory.getTang()
+                        .newConfigurationBuilder(poisonedConfiguration,
+                                ContextConfiguration.CONF.set(ContextConfiguration.IDENTIFIER, lcContextId).build())
+                        .build());
+
+            } else {
+                contextAccumulator.onNext(activeContext);
+            }
         }
     }
 

@@ -54,7 +54,7 @@ public final class LogisticRegression {
      */
     private static final int NUM_SPLITS = 6;
     private static final int NUM_COMPUTE_EVALUATORS = 5;
-    private static final int NUM_LOCAL_THREADS = 6;
+    private static final int NUM_LOCAL_THREADS = 8;
 
     /**
      * @return the configuration of the LogisticRegression driver.
@@ -91,7 +91,7 @@ public final class LogisticRegression {
                 .build();
 
 
-        return driverConfiguration;
+        return dataLoadConfiguration;
     }
 
     public static LauncherStatus runLogisticRegression(final Configuration runtimeConf, final int timeOut)
