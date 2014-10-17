@@ -29,8 +29,10 @@ import edu.snu.bdcs.lbfgs.HelloDriver;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+
 /**
  * The Client for LogisticRegression.
+ * Created by Jaehyun on 2014-10-17.
  */
 public final class LogisticRegression {
 
