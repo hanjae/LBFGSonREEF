@@ -1,4 +1,4 @@
 #!/bin/sh
 #
 
-java -cp target/*shaded.jar edu.snu.bdcs.lbfgs.HelloREEF
+java -cp target/*shaded.jar edu.snu.bdcs.lbfgs.LogisticRegression
