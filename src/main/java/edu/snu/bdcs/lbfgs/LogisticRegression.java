@@ -18,13 +18,18 @@ package edu.snu.bdcs.lbfgs;
 import com.microsoft.reef.client.DriverConfiguration;
 import com.microsoft.reef.client.DriverLauncher;
 import com.microsoft.reef.client.LauncherStatus;
+import com.microsoft.reef.driver.evaluator.EvaluatorRequest;
+import com.microsoft.reef.io.data.loading.api.DataLoadingRequestBuilder;
 import com.microsoft.reef.runtime.local.client.LocalRuntimeConfiguration;
 import com.microsoft.reef.util.EnvironmentUtils;
 import com.microsoft.tang.Configuration;
+import com.microsoft.tang.annotations.Name;
+import com.microsoft.tang.annotations.NamedParameter;
 import com.microsoft.tang.exceptions.BindException;
 import com.microsoft.tang.exceptions.InjectionException;
 
 import edu.snu.bdcs.lbfgs.HelloDriver;
+import org.apache.hadoop.mapred.TextInputFormat;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,6 +48,14 @@ public final class LogisticRegression {
      */
     private static final int JOB_TIMEOUT = 10000; // 10 sec.
 
+
+    /**
+     * Number of data split
+     */
+    private static final int NUM_SPLITS = 6;
+    private static final int NUM_COMPUTE_EVALUATORS = 5;
+    private static final int NUM_LOCAL_THREADS = 5;
+
     /**
      * @return the configuration of the LogisticRegression driver.
      */
@@ -56,6 +69,27 @@ public final class LogisticRegression {
                 .set(DriverConfiguration.ON_TASK_COMPLETED, LRDriver.TaskCompletedHandler.class)
                 .set(DriverConfiguration.ON_CONTEXT_ACTIVE, LRDriver.ContextActiveHandler.class)
                 .build();
+        final EvaluatorRequest computeRequest = EvaluatorRequest.newBuilder()
+                .setNumber(NUM_COMPUTE_EVALUATORS)
+                .setMemory(512)
+                .setNumberOfCores(1)
+                .build();
+        final Configuration dataLoadConfiguration = new DataLoadingRequestBuilder()
+                .setMemoryMB(1024)
+                .setInputFormatClass(TextInputFormat.class)
+                .setInputPath("c:\\binary.csv")
+                .setNumberOfDesiredSplits(NUM_SPLITS)
+                .setComputeRequest(computeRequest)
+                .setDriverConfigurationModule(DriverConfiguration.CONF
+                        .set(DriverConfiguration.DRIVER_IDENTIFIER, "LogisticRegressionDriver")
+                        .set(DriverConfiguration.GLOBAL_LIBRARIES, EnvironmentUtils.getClassLocation(LRDriver.class))
+                        .set(DriverConfiguration.ON_DRIVER_STARTED, LRDriver.StartHandler.class)
+                        .set(DriverConfiguration.ON_EVALUATOR_ALLOCATED, LRDriver.EvaluatorAllocatedHandler.class)
+                        .set(DriverConfiguration.ON_TASK_RUNNING, LRDriver.TaskRunningHandler.class)
+                        .set(DriverConfiguration.ON_TASK_COMPLETED, LRDriver.TaskCompletedHandler.class)
+                        .set(DriverConfiguration.ON_CONTEXT_ACTIVE, LRDriver.ContextActiveHandler.class))
+                .build();
+
 
         return driverConfiguration;
     }
@@ -78,10 +112,30 @@ public final class LogisticRegression {
     public static void main(final String[] args) throws BindException, InjectionException {
         // TODO : build LocalRuntimeConfiguration
         final Configuration runtimeConfiguration = LocalRuntimeConfiguration.CONF
-                .set(LocalRuntimeConfiguration.NUMBER_OF_THREADS, 6)
+                .set(LocalRuntimeConfiguration.NUMBER_OF_THREADS, NUM_LOCAL_THREADS)
                 .build();
 
+        /*
+        final EvaluatorRequest computeRequest = EvaluatorRequest.newBuilder()
+                .setNumber(NUM_COMPUTE_EVALUATORS)
+                .setMemory(512)
+                .setNumberOfCores(1)
+                .build();
+        final Configuration dataLoadConfiguration = new DataLoadingRequestBuilder()
+                .setMemoryMB(1024)
+                .setInputFormatClass(TextInputFormat.class)
+                .setInputPath("binary.csv")
+                .setNumberOfDesiredSplits(NUM_SPLITS)
+                .setComputeRequest(computeRequest)
+                .setDriverConfigurationModule(DriverConfiguration.CONF
+                        .set(DriverConfiguration.GLOBAL_LIBRARIES, EnvironmentUtils.getClassLocation(LineCounter.class))
+                        .set(DriverConfiguration.ON_CONTEXT_ACTIVE, LineCounter.ContextActiveHandler.class)
+                        .set(DriverConfiguration.ON_TASK_COMPLETED, LineCounter.TaskCompletedHandler.class)
+                        .set(DriverConfiguration.DRIVER_IDENTIFIER, "DataLoadingREEF"))
+                .build();
+        */
         final LauncherStatus status = runLogisticRegression(runtimeConfiguration, JOB_TIMEOUT);
+        //final LauncherStatus status = DriverLauncher.getLauncher(runtimeConfiguration).run(dataLoadConfiguration, JOB_TIMEOUT);
         LOG.log(Level.INFO, "REEF job completed: {0}", status);
     }
 }
