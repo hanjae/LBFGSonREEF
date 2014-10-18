@@ -22,7 +22,7 @@ public class LRArrayConcat implements Reduce.ReduceFunction<LRArray> {
 
     }
 
-    /* simply averaging data */
+    /* Simply averaging data since reducing data is for coefficients so averaging is no problem*/
     @Override
     public LRArray apply(Iterable<LRArray> elements) {
         double[] resultArr = null;

@@ -79,7 +79,6 @@ public class LRComputeTask implements Task {
         String resultStr = "ComputeTask Trained : ";
         resultStr += resultArr.get(0) + " " + resultArr.get(1) + " " + resultArr.get(2);
         return resultStr.getBytes();
+
     }
-
-
 }

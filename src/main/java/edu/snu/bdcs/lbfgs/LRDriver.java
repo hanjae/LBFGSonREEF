@@ -45,7 +45,7 @@ import java.util.logging.Logger;
 @Unit
 public class LRDriver {
 
-    private static final Logger LOG = Logger.getLogger(HelloDriver.class.getName());
+    private static final Logger LOG = Logger.getLogger(LRDriver.class.getName());
 
 
     private final int computeTasks;
@@ -132,6 +132,7 @@ public class LRDriver {
             }
         }
     }
+
     public final class ContextActiveHandler implements EventHandler<ActiveContext> {
         @Override
         public void onNext(final ActiveContext activeContext) {
@@ -146,7 +147,7 @@ public class LRDriver {
         public final void onNext(final CompletedTask completed) {
             LOG.log(Level.INFO, "Task {0} is done.", completed.getId());
             if (taskSubmitter.controllerCompleted(completed.getId())) {
-                // Get results from controller
+                // Get results from controller and print
                 System.out.println("****************** RESULT ******************");
                 System.out.println(new String(completed.get()));
                 System.out.println("********************************************");

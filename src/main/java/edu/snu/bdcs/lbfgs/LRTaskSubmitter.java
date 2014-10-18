@@ -29,13 +29,7 @@ import java.util.logging.Logger;
 
 /**
  * TaskSubmitter is responsible for submitting tasks to running evaluators.
- * <p/>
- * This is an event handler for events containing an iterable of running
- * evaluators. send, it creates the necessary structures to create the group
- * communication operator configurations and first submits the compute tasks.
- * <p/>
- * When all the compute tasks start, the driver will signal start of
- * controller through submitControlTask
+ * TaskSubmitter leverages the tasks
  *
  * @author shravan
  */
@@ -89,9 +83,6 @@ public class LRTaskSubmitter implements EventHandler<Iterable<ActiveContext>> {
 
     /**
      * Constructor
-     *
-     * @param numberOfComputeTasks
-     * @param nameServicePort
      */
     public LRTaskSubmitter(int numberOfComputeTasks, int nameServicePort) {
         this.numberOfComputeTasks = numberOfComputeTasks;
@@ -113,8 +104,7 @@ public class LRTaskSubmitter implements EventHandler<Iterable<ActiveContext>> {
     }
 
     /**
-     * We have our list of {@link computeTasks} running Set up structures
-     * required for group communication
+     * Running Set up structures
      */
     @Override
     public void onNext(Iterable<ActiveContext> contexts) {
@@ -130,7 +120,6 @@ public class LRTaskSubmitter implements EventHandler<Iterable<ActiveContext>> {
                 contextList.add(context);
                 final String hostAddr = context.getEvaluatorDescriptor().getNodeDescriptor()
                         .getInetSocketAddress().getHostName();
-//				String hostAddr = Utils.getLocalAddress();
                 final int port = nsPorts.get(runnEvalCnt);
                 final ComparableIdentifier compTaskId = computeTaskIds.get(runnEvalCnt);
                 logger.log(Level.INFO, "Registering " + compTaskId + " with " + hostAddr + ":" + port);
@@ -142,7 +131,6 @@ public class LRTaskSubmitter implements EventHandler<Iterable<ActiveContext>> {
                 controllerContext = context;
                 final String hostAddr = context.getEvaluatorDescriptor().getNodeDescriptor()
                         .getInetSocketAddress().getHostName();
-//				String hostAddr = Utils.getLocalAddress();
                 nameService.register(controllerId, new InetSocketAddress(
                         hostAddr, controllerPort));
                 id2port.put(controllerId, controllerPort);
@@ -157,10 +145,9 @@ public class LRTaskSubmitter implements EventHandler<Iterable<ActiveContext>> {
 
         operators.addScatter().setSender(controllerId)
                 .setReceivers(computeTaskIds);
-        /*operators.addBroadCast().setSender(controllerId)
-                .setReceivers(computeTaskIds);*/
         operators.addReduce().setReceiver(controllerId)
                 .setSenders(computeTaskIds).setRedFuncClass(LRArrayConcat.class);
+
         // Launch ComputeTasks first
         for (int i = 0; i < contextList.size(); i++) {
             final ComparableIdentifier compTaskId = computeTaskIds.get(i);
@@ -169,14 +156,8 @@ public class LRTaskSubmitter implements EventHandler<Iterable<ActiveContext>> {
     }
 
     /**
-     * The {@link Configuration} for a {@link ComputeTask}
-     * <p/>
-     * Given the task id, the {@link GroupOperators} object will get you the
-     * {@link Configuration} needed for Group Communication Operators on that
-     * task
+     * Configure the compute task
      *
-     * @param compTaskId
-     * @return
      */
     private Configuration getComputeTaskConfig(final ComparableIdentifier compTaskId) {
         try {
@@ -199,9 +180,7 @@ public class LRTaskSubmitter implements EventHandler<Iterable<ActiveContext>> {
     }
 
     /**
-     * Submits the {@link LRControllerTask} using the {@link EvaluatorRunning}
-     * stored. We get the group communication configuration from
-     * {@link GroupOperators} object
+     * Submits the ControllerTask
      */
     public void submitControlTask() {
         try {
@@ -224,9 +203,6 @@ public class LRTaskSubmitter implements EventHandler<Iterable<ActiveContext>> {
 
     /**
      * Check if the id of the completed task matches that of the controller
-     *
-     * @param id
-     * @return true if it matches false otherwise
      */
     public boolean controllerCompleted(String id) {
         return factory.getNewInstance(id).equals(controllerId);
