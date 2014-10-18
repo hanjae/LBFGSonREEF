@@ -132,16 +132,18 @@ public class lmbfgs {
         int i = 0;
         double fx = 0.0f;
 
+        /**
+         *  Min J(theta) = (theta_1 - 5) ^ 2 + (theta_2 - 5) ^ 2 + (theta_3 - 5) ^ 2
+         *
+         */
         for (i = 0; i < n; i += (num_features + 1)) {
+            double[] t = new double[num_features];
             for (int j = 0; j < num_features; j++) {
-                //x[i+j] = x(j)
+                t[j] = x[i+j] + 5;
+                g[i+j] = 2 * (t[j] - 5);
+                fx += t[j] * t[j];
             }
-            //x[i + num_features] == y
-            double t1 = 1.0 - x[i];
-            double t2 = 10.0 * (x[i+1] - x[i] * x[i]);
-            g[i+1] = 20.0 * t2;
-            g[i] = -2.0 * (x[i] * g[i+1] + t1);
-            fx += t1 * t1 + t2 * t2;
+            g[i + num_features] = x[i + num_features];
         }
 
         return fx;
