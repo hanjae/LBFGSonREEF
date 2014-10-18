@@ -1,7 +1,7 @@
 LBFGSonREEF
 ===========
 
-Implement machine Learning altorithm LBFGS on REEF
+Implement machine Learning altorithm LBFGS with Logistic Regression on REEF
 
 Prerequisite
 ===========
@@ -31,15 +31,14 @@ Working
  * ComputeTasks compute according to the algorithm and reduce the result back
  * we just average the result data.(Since it is coefficient)
 * Java ported l-bfgs algorithm
+ * Use this algorithm for fit to logistic regression
 
 Not working
 ===========
 * File loading api
- * I give up
+ * I gived up
  * I just put raw data on source code like MatMul example
-* Logistic regression
- * l-bfgs algorithm is completely ported and working but failed to combine with Logistic Regresssion.
- * Should use appropriate sigmoid function, but I have no idea which function should I use.
+
 
 Dataset
 ===========
